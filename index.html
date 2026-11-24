@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MEROS-AI — Tarixiy suhbat demo</title>
+    <style>
+      :root { --ink:#1f2937; --paper:#f7f1e3; --gold:#b8862d; --green:#12372a; }
+      * { box-sizing:border-box; }
+      body { margin:0; min-height:100vh; font-family:Georgia,serif; color:var(--ink); background:linear-gradient(135deg,#ede2c7,#faf7ec); }
+      .app { max-width:1100px; margin:auto; padding:24px; }
+      header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+      .brand { color:var(--green); font-size:28px; font-weight:bold; }
+      .era { border:1px solid var(--gold); border-radius:999px; padding:8px 14px; color:#72551f; }
+      .grid { display:grid; grid-template-columns:300px 1fr; gap:18px; }
+      .panel { background:rgba(255,255,255,.78); border:1px solid #d9c89f; border-radius:18px; box-shadow:0 12px 32px rgba(74,52,20,.08); }
+      .profile { padding:24px; text-align:center; }
+      .portrait { width:180px; height:180px; object-fit:cover; border-radius:50%; border:6px solid #fff; box-shadow:0 8px 24px rgba(0,0,0,.12); background:#d8cfb9; }
+      h1 { margin:16px 0 6px; font-size:25px; }
+      .subtitle { color:#6b7280; }
+      .info { text-align:left; margin-top:20px; line-height:1.7; }
+      .chat { display:flex; flex-direction:column; min-height:610px; }
+      .messages { flex:1; padding:24px; overflow:auto; }
+      .message { max-width:78%; padding:14px 16px; margin:10px 0; border-radius:16px; line-height:1.55; }
+      .bot { background:#edf3e9; border-bottom-left-radius:4px; }
+      .user { background:var(--green); color:white; margin-left:auto; border-bottom-right-radius:4px; }
+      .source { display:block; margin-top:10px; font-size:12px; color:#64748b; }
+      .composer { display:flex; gap:10px; padding:16px; border-top:1px solid #e5dcc2; }
+      input { flex:1; border:1px solid #cbbd98; border-radius:12px; padding:13px 14px; font:inherit; }
+      button { border:0; border-radius:12px; background:var(--gold); color:white; padding:0 20px; font-weight:bold; cursor:pointer; }
+      .suggestions { display:flex; gap:8px; flex-wrap:wrap; margin:0 24px 8px; }
+      .suggestions button { background:#f1ead7; color:#5c4b28; padding:8px 10px; font-size:13px; }
+      @media (max-width:760px){ .grid{grid-template-columns:1fr}.profile{display:flex;gap:16px;text-align:left}.portrait{width:100px;height:100px}.chat{min-height:500px}.message{max-width:90%} }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header><div class="brand">MEROS-AI</div><div class="era">Amir Temur davri • 1370–1405</div></header>
+      <section class="grid">
+        <aside class="panel profile">
+          <img class="portrait" alt="Amir Temur" src="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=500&q=80">
+          <div>
+            <h1>Amir Temur</h1>
+            <div class="subtitle">Sohibqiron • Bosh qo‘mondon</div>
+            <div class="info">
+              <b>Vazifasi:</b> Tarixiy savollarga darslik manbalari asosida javob berish.<br>
+              <b>Rejim:</b> RAG demo
+            </div>
+          </div>
+        </aside>
+        <section class="panel chat">
+          <div class="messages" id="messages">
+            <div class="message bot">Salom! Men Amir Temur davri bo‘yicha savolingizga darslik matnlari asosida javob beraman.<span class="source">Manba: Darslik va demo RAG bazasi</span></div>
+          </div>
+          <div class="suggestions">
+            <button onclick="ask('Amir Temurning asosiy siyosiy maqsadi nima edi?')">Asosiy maqsad</button>
+            <button onclick="ask('Temuriylar davlati qanday boshqarilgan?')">Boshqaruv usuli</button>
+            <button onclick="ask('Amir Temurning tarixiy ahamiyati qanday?')">Tarixiy ahamiyat</button>
+          </div>
+          <form class="composer" id="form">
+            <input id="question" autocomplete="off" placeholder="Tarixiy savolingizni yozing…" />
+            <button type="submit">Yuborish</button>
+          </form>
+        </section>
+      </section>
+    </main>
+    <script>
+      const character = {
+        name: 'Amir Temur', era: '1370–1405', gradeLabel: 'O‘zbekiston tarixi, 7-sinf',
+        ragChunks: [
+          { title: 'Temuriylar davlati', keywords:['amir temur','davlat','siyosat','mustaqillik','markazlashuv'], text:'Amir Temur O‘zbekiston hududida markazlashgan kuchli davlatni barpo etdi. Davlatni birlashtirish, tashqi xavfsizlikni taʼminlash va savdo yo‘llarini himoya qilish uning asosiy siyosiy maqsadlari bo‘lgan.' },
+          { title: 'Davlat boshqaruvi', keywords:['boshqaruv','kengash','maslahat','iqta','hokim','soliq'], text:'Davlat boshqaruvida markaziy hokimiyat, kengashlar va mahalliy hokimlar birgalikda faoliyat yuritgan. Temur harbiy yurishlardan oldin lashkarboshilar va maslahatchilar bilan masala muhokama qilgan.' },
+          { title: 'Madaniyat va ilm-fan', keywords:['ahamiyat','madaniyat','ilm','fan','meʼmorlik','samarqand'], text:'Samarqand, shaharsozlik, ilm-fan va hunarmandchilik rivojiga katta eʼtibor berildi. Ustalar, olimlar va savdogarlar mamlakatiga sayohat qilgan shaharlarda madaniy meros boyitildi.' },
+          { title: 'Temuriylar merosi', keywords:['meros','tarix','madaniyat','mustahkamlik','diplomatiya'], text:'Temuriylar davri kuchli davlat tuzilmasi, diplomatik aloqalar va jahon madaniyatiga taʼsir ko‘rsatgan meros bilan muhim tarixiy ahamiyatga ega.' }
+        ]
+      };
+
+      const UZ_STOP_WORDS = new Set(['va','ham','bilan','uchun','haqida','nima','nimada','qanday','qancha','qayerda','qachon','necha','nega','nega uchun','bu','shu','o‘sha','ular','men','siz','biz','u','ning','ga','da','dan','ni','lar','edi','ekan','bo‘lgan','bo‘lib','deb','degan','amir','temur']);
+
+      function tokenizeUzbek(text){return (text||'').toLowerCase().replace(/[’‘ʻ`]/g,'\u2018').replace(/[^\p{L}\p{N}\s\u2018-]/gu,' ').split(/\s+/).map(t=>t.trim()).filter(t=>t.length>1&&!UZ_STOP_WORDS.has(t));}
+
+      function retrieveRagChunks(question){
+        const chunks=character.ragChunks; const qTokens=tokenizeUzbek(question);
+        if(!qTokens.length)return chunks.slice(0,2).map(chunk=>({...chunk,score:1,_index:chunks.indexOf(chunk)}));
+        const scored=chunks.map((chunk,idx)=>{let score=0;const title=(chunk.title||'').toLowerCase();const text=(chunk.text||'').toLowerCase();const keywords=(chunk.keywords||[]).map(k=>k.toLowerCase());for(const token of qTokens){if(keywords.includes(token))score+=6;else if(keywords.some(k=>k.includes(token)||token.includes(k)))score+=4;if(title.includes(token))score+=3;if(text.includes(token))score+=2;}return {...chunk,score,_index:idx};});
+        scored.sort((a,b)=>b.score-a.score||a._index-b._index);const relevant=scored.filter(x=>x.score>0);return relevant.length?[...relevant.slice(0,2)]:[{...chunks[0],score:0,_index:0}];
+      }
+
+      function isAnachronism(question){return /telefon|kompyuter|internet|raketa|suniy intellekt|iot|televizor/i.test(question);}
+
+      function buildLocalRagResponse(question){
+        if(isAnachronism(question))return{text:`Hayratda qoldim! 1370–1405 davrimizda bunday qurilma bo‘lmagan. Biz bilimlarni qo‘lyozma kitoblar, elchilar, ustoz-shogird suhbatlari va karvonlar orqali yetkazganmiz.`,sourceTitle:'Davriy chegara himoyasi • 1370–1405',ragSnippet:'Amir Temur davri tarixiy voqeliklari.'};
+        const matched=retrieveRagChunks(question);const top=matched[0];const second=matched[1]&&matched[1].score>0?matched[1]:null;
+        const q=question.toLowerCase();let intro='Savolingiz bo‘yicha darslik manbalariga asoslanib javob beraman: ';if(q.includes('nima uchun')||q.includes('nega')||q.includes('sabab'))intro='Buning asosiy sababi shundaki, Amir Temur faoliyatida quyidagi omil hal qiluvchi bo‘lgan: ';else if(q.includes('qanday')||q.includes('usul')||q.includes('yo‘l'))intro='Bu ishda quyidagi yondashuv va amaliy choralar qo‘llanilgan: ';else if(q.includes('ahamiyat')||q.includes('rol')||q.includes('taʼsir'))intro='Tarixiy ahamiyatiga to‘xtalsak, darslik manbalarida bu jihat shunday yoritiladi: ';
+        const combined=second?`${top.text} Shuningdek, ${second.text.charAt(0).toLowerCase()}${second.text.slice(1)}`:top.text;
+        return{text:`${intro}${combined}`,sourceTitle:second?`${top.title} | ${second.title}`:top.title,ragSnippet:top.text};
+      }
+
+      function addMessage(text,source,kind){const box=document.createElement('div');box.className=`message ${kind}`;box.innerHTML=`${text}${source?`<span class="source">Manba: ${source}</span>`:''}`;document.getElementById('messages').appendChild(box);box.scrollIntoView({behavior:'smooth'});}
+      function ask(text){document.getElementById('question').value=text;document.getElementById('form').requestSubmit();}
+      document.getElementById('form').addEventListener('submit',e=>{e.preventDefault();const input=document.getElementById('question');const question=input.value.trim();if(!question)return;addMessage(question,'', 'user');input.value='';setTimeout(()=>{const response=buildLocalRagResponse(question);addMessage(response.text,response.sourceTitle,'bot');},350);});
+    </script>
+  </body>
+</html>
